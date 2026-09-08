@@ -1,0 +1,29 @@
+name: Coaching and numeric regression
+on:
+  push:
+    branches: [main, feat/life-first-coaching]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install project and test dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Check frontend syntax
+        run: node --check workbench/static/coach.js
+      - name: Run all numeric, coaching and web regressions
+        run: python -m pytest tests tests_web -q --junitxml=test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results.xml

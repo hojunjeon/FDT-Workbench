@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KeyFin · 생활 코칭</title>
+  <link rel="stylesheet" href="/static/coach.css">
+  <script src="/static/coach.js" defer></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="/">KeyFin <span>생활 코칭</span></a><a href="/workbench">자료 연결·갱신 / 분석 도구</a></header>
+<main>
+  <section class="intro"><p class="eyebrow">내 돈의 다음 행동</p><h1>지금 필요한 결정부터.</h1><p>다가올 결제를 챙기고, 바꾸려는 지출을 비교하고, 정한 한도를 다음에 다시 확인합니다.</p></section>
+  <section class="panel controls" aria-label="점검할 자료와 기간">
+    <label>내 자료<select id="twin"><option value="">자료를 불러오는 중</option></select></label>
+    <label>다음 점검일 <small>기본 7일, 직접 변경 가능</small><input id="through" type="date" required></label>
+    <label>건드리지 않을 현금 <small>비우면 자료값 사용, 자료에도 없으면 미정</small><input id="reserve" type="number" min="0" max="1000000000000" step="1" placeholder="금액 미정"></label>
+    <button id="review" type="button">내 상황 점검</button>
+  </section>
+  <div id="error" class="message error" role="alert" hidden></div>
+  <div id="progress" class="message" role="status" aria-live="polite" hidden><span id="progress-text"></span><button id="cancel" class="secondary" type="button">점검 취소</button></div>
+  <section id="empty" class="panel" hidden><h2>먼저 내 자료를 연결해 주세요</h2><p>소비 내역만으로 통장 잔액을 추측하지 않습니다. 거래 내역과 날짜가 맞는 계좌·카드 정보를 준비해 주세요.</p><a class="button" href="/workbench">자료 연결하기</a></section>
+  <section id="brief" class="panel brief" hidden aria-live="polite">
+    <div class="section-heading"><p id="basis" class="eyebrow"></p><span id="replay-badge" class="badge" hidden>과거 자료 검토</span></div>
+    <h2 id="action-title"></h2><p id="action-detail"></p>
+    <div class="actions"><a id="update-data" class="button secondary" href="/workbench" hidden>거래·잔액 갱신</a><button id="replay" class="secondary" type="button" hidden>자료 기준일로만 검토</button><button id="choose-cap" class="secondary" type="button" hidden>내가 지킬 한도 정하기</button></div>
+    <p id="next-review" class="muted"></p>
+  </section>
+  <section id="cash-section" class="panel" hidden><div class="section-heading"><h2>결제할 돈과 더 쓸 돈은 다릅니다</h2><span id="cash-through" class="muted"></span></div><div id="cash-cards" class="card-grid"></div><p class="muted">추가 지출 여유는 기존 소비·미결제액·보관액을 반영한 기간 중 최소 여유입니다. 승인된 예산이나 안전 보장이 아니며, 계좌별 금액을 합산해서 쓰면 안 됩니다.</p><details><summary>통장 잔액이 달라지는 이유</summary><div id="cash-explanation" class="table-scroll"></div></details></section>
+  <div class="two-columns">
+    <section id="upcoming-section" class="panel" hidden><h2>다가오는 입금과 결제</h2><p class="muted">확정 청구, 사용자 계획, 과거 이력에서 추정한 일정을 구분해 확인하세요.</p><div id="upcoming" class="table-scroll"></div></section>
+    <section id="budget-section" class="panel" hidden><h2>예산은 얼마나 남아 있나요?</h2><p id="budget-basis" class="muted"></p><div id="budgets" class="table-scroll"></div></section>
+  </div>
+  <section id="decision-section" class="panel" hidden>
+    <p class="eyebrow">바꾸기 전에 확인</p><h2>돈 계획에 달라지는 일이 있나요?</h2>
+    <p>비율을 추측하지 않습니다. 실제 금액·날짜·결제수단을 넣어 현재 흐름과 비교하세요. 자유 문장을 자동으로 해석하는 채팅창은 아닙니다.</p>
+    <form id="decision-form">
+      <div class="form-grid"><label>바뀌는 일<select id="change-kind"><option value="expense">구매하거나 예정 지출을 챙기기</option><option value="set_aside">지금 돈을 따로 보관하기</option><option value="income_delay">받기로 한 입금이 늦어지기</option><option value="spending_cap">이번 기간의 추가 지출 한도 정하기</option></select></label><label>계획 이름 <small>선택</small><input id="label" maxlength="120" placeholder="직접 알아볼 수 있는 이름"></label></div>
+      <div class="form-grid">
+        <label data-kinds="expense set_aside spending_cap">금액 (원)<input id="amount" type="number" min="0" max="1000000000000" step="1"></label>
+        <label data-kinds="expense set_aside">어디서 낼까요?<select id="payer"></select></label>
+        <label data-kinds="expense">구매·지출일<input id="event-date" type="date"></label>
+        <label id="payment-field" hidden>카드에서 실제 출금될 날<input id="payment-date" type="date"></label>
+        <label data-kinds="expense spending_cap">예산 항목<select id="envelope"></select></label>
+        <label data-kinds="spending_cap">한도 시작일 <small>자료 기준일 다음 날부터</small><input id="cap-start" type="date"></label>
+        <label data-kinds="spending_cap">한도 종료일<input id="cap-end" type="date"></label>
+        <label data-kinds="income_delay">늦어지는 입금 한 건<select id="income"></select></label>
+        <label data-kinds="income_delay">새로 받을 날짜<input id="income-new-date" type="date"></label>
+      </div>
+      <label id="earmark-field" class="check"><input id="earmark" type="checkbox">예정 지출일까지 이 금액을 미리 쓰지 않고 보관하기</label>
+      <p id="change-note" class="muted"></p>
+      <div class="actions"><button type="submit" id="compare">이 변경을 비교</button><button type="button" id="save-plan" class="secondary" hidden>이 한도를 계획으로 저장</button></div>
+    </form>
+    <div id="comparison" hidden><h3>같은 조건에서 변경 전과 비교</h3><div id="comparison-table" class="table-scroll"></div><p class="muted">지출 감소와 같은 날의 통장 잔액 증가는 다를 수 있습니다. 돈을 보관하는 것은 소비가 아닙니다.</p></div>
+  </section>
+  <section id="plans-section" class="panel" hidden><h2>내가 정한 한도, 그다음은?</h2><p class="muted">계획은 명시적으로 저장한 것만 추적합니다. 새 자료를 연결해도 같은 사용자의 계획을 이어서 확인합니다. 관측된 지출 비교이지 코칭 덕분에 절약했다는 판정은 아닙니다.</p><div id="plans"></div></section>
+  <section id="notes-section" class="panel" hidden><h2>이번 판단의 조건</h2><div id="notes"></div><details><summary>계산 근거 JSON</summary><pre id="raw-result"></pre></details></section>
+</main>
+<footer>KeyFin은 이체·결제·자동 감축을 실행하지 않습니다. 계획은 이 기기에 저장되며, 다음 점검일은 알림 예약이 아닙니다.</footer>
+</body>
+</html>
