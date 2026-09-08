@@ -1,0 +1,22 @@
+name: Four-persona benchmark evidence
+on:
+  push:
+    branches: [qa/persona-48-20260908]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 30aebb7e9f7d7bedc707c1a14a168a9092b2afa1
+          persist-credentials: false
+      - name: Archive exact source under test
+        run: git archive --format=zip HEAD -o benchmark-source.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-source
+          path: benchmark-source.zip
