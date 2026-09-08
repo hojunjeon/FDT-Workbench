@@ -30,7 +30,7 @@ Python 3.11 이상이 필요합니다. 기존 실행 방법을 그대로 사용�
 개발·검증:
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -r requirements-web.lock -e ".[dev]"
 python -m pytest tests tests_web -q
 node --check workbench/static/coach.js
 ```

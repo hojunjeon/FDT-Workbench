@@ -45,7 +45,7 @@ def validate_change(change: dict) -> dict:
         'income_delay': {'rule_id', 'original_date', 'new_date'},
         'spending_cap': {'envelope', 'start_date', 'end_date', 'amount_krw'},
     }
-    if not isinstance(change, dict) or change.get('kind') not in kinds:
+    if not isinstance(change, dict) or not isinstance(change.get('kind'), str) or change['kind'] not in kinds:
         fail('지원하는 행동은 지출, 자금 보관, 특정 입금 지연, 기간별 추가 지출 한도입니다.')
     kind = change['kind']
     required = {
@@ -65,7 +65,7 @@ def validate_change(change: dict) -> dict:
             fail(f'{key}를 확인하세요.')
     if 'amount_krw' in change:
         money(change['amount_krw'], 'amount_krw')
-    if 'envelope' in change and change['envelope'] not in ENVELOPES:
+    if 'envelope' in change and (not isinstance(change['envelope'], str) or change['envelope'] not in ENVELOPES):
         fail('승인된 예산 항목을 선택하세요. 하위분류를 임의 비율로 바꾸지 않습니다.')
     if kind == 'expense':
         if bool(change.get('account_id')) == bool(change.get('card_id')):
