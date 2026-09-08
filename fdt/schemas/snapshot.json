@@ -142,6 +142,7 @@
           "kind": {
             "enum": [
               "expense",
+              "fixed_expense",
               "income",
               "reimbursement",
               "savings_out",
@@ -164,6 +165,16 @@
               "쇼핑",
               "편의점·마트·잡화",
               "기타"
+            ]
+          },
+          "fixed_group": {
+            "enum": [
+              "주거",
+              "공과금",
+              "통신",
+              "보험·사회보험",
+              "세금",
+              "구독·멤버십"
             ]
           },
           "account_id": {
@@ -206,6 +217,17 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 200
+          },
+          "replaces_transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "uniqueItems": true
           }
         },
         "required": [

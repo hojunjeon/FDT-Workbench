@@ -38,9 +38,28 @@
 
 cash_events 날짜는 현재 Twin 이후이면서 horizon 안이어야 합니다.
 감축은 7봉투 중 지정한 **비고정·비반복 소비**에만 적용됩니다.
-`expense_multiplier`는 고정 소비에도 적용되지만 원리금·저축·인출에는 적용하지 않습니다.
+`expense_multiplier`는 `expense` 흐름 전체(보호된 반복 소비 포함)에 적용하고 `fixed_expense`에는 적용하지 않습니다. 원리금·저축·인출에도 적용하지 않습니다.
 `cancel_rule_ids`는 inspect의 recurring_rules에서 선택한 알려진 일정에만 적용합니다.
 `asset_shock_fraction`은 제공한 투자 평가액의 정적 충격이며 현금 유입이 아닙니다.
+
+### 고정지출 시나리오 필드
+
+|필드|적용 범위와 의미|
+|---|---|
+|`expense_reductions`|비보호 `expense` 잔여 소비만 감축합니다. 반복·수동 일정과 `fixed_expense`는 제외합니다.|
+|`expense_multiplier`|`expense` 흐름 전체(보호 소비·PENDING 포함)에 적용하고 `fixed_expense`는 제외합니다.|
+|`fixed_multiplier`|기본값 1, 범위 0~5. 고정지출 잔여 거래와 고정지출 규칙에 적용합니다.|
+|`fixed_overrides`|`[{rule_id, amount_krw}]`, 최대 100개. 현재 `fixed_expense` 규칙의 발생 기준 금액을 배율 전에 교체합니다.|
+|`cancel_rule_ids`|알려진 규칙을 취소합니다. 같은 ID를 `fixed_overrides`와 함께 지정하면 거부합니다.|
+|`cash_events[].fixed_group`|`EXPENSE`에만 지정할 수 있습니다. 지정하면 고정지출 그룹에 넣고 `fixed_multiplier`는 적용하지 않습니다. `INCOME`에 지정하면 `SCENARIO_FIXED_GROUP_INCOME`입니다.|
+
+처리 순서는 규칙 ID 검증 → 취소 → `fixed_overrides` → 종류별 배율 → 집계입니다. `fixed_overrides`의 금액은 0~10^12 KRW 범위를 지켜야 하며, 미등록·비고정 규칙과 중복 override는 오류입니다.
+
+### PENDING 처리
+
+`confirm_status=PENDING` 거래는 `pending=true`인 `expense`로 남깁니다. 현금 소비(`consumption`)와 잔액 흐름에는 포함하지만 `envelope`, `budget_by_envelope`, 봉투 지표에서는 제외합니다. 고정 그룹을 부여하지 않으며 원 `category`·`subcategory`만 보존합니다.
+
+관측 합계는 `pending_consumption_krw`, 예측 합계는 `pending_expense_p50_krw`로 별도 제공합니다. 관측 소비 중 PENDING 금액 비율이 5%를 넘으면 `PENDING_SHARE_HIGH` 경고(details: `share`, `rows`, `krw`)를 내고 결과 `status`를 `partial`로 낮춥니다.
 
 ### Goal 예시
 
@@ -69,7 +88,26 @@ Monte Carlo Wilson 구간은 샘플링 오차만 다룹니다. 모델 오류를 
 `minimum_remaining_monthly_krw`는 후보별 잔여 **변동 소비**의 30.4375일 환산 평균 하한입니다.
 예: 외식 최소 15만원. 계약상 의무 비용의 실현 가능성을 대신 검증하지는 않습니다.
 
-## 3. 시각화 바인딩
+## 3. 지표·데이터셋·시각화
+
+### 3-1. 새 지표와 데이터셋
+
+공통 결과에는 소비(C)와 고정지출(F)을 분리한 지표를 함께 제공합니다.
+
+|지표|의미·단위|basis|
+|---|---|---|
+|`total_expense_p10/p50/p90_krw`, `expected_expense_krw`|소비 C의 경로 분위수·기대값|`simulation_consumption_only`|
+|`total_fixed_p10/p50/p90_krw`, `expected_fixed_krw`|고정지출 F의 경로 분위수·기대값|`simulation_fixed_only`|
+|`fixed_monthly_p50_krw`|P50(F) × 30.4375 / 기간 일수|KRW|
+|`fixed_share_of_outflow`|mean(F) / mean(C+F)|`ratio`|
+|`total_outflow_p50_krw`|경로별 C+F 합의 P50|KRW|
+|`pending_expense_p50_krw`|PENDING 소비 합의 P50|KRW|
+|`pending_consumption_krw`|관측 PENDING 소비 합계|`observed`|
+|`fixed_coverage_months`|risk 모드에서 가용 잔액 / 월 고정지출|`months`|
+
+`datasets.fixed_groups`는 `group`, `p10_krw`, `p50_krw`, `p90_krw`를 가진 6행을 항상 제공합니다. what-if에는 분기 결과를 같은 형식의 `branch_fixed_groups`로 제공합니다. 일별 데이터에는 `cumulative_fixed_p50_krw`와 `cumulative_pending_p50_krw`를 추가합니다. `envelopes` 데이터셋은 고정지출을 제외한 변동 소비만 담습니다.
+
+### 3-2. 시각화 바인딩
 
 `result.visualizations` 예시 구조:
 
@@ -129,6 +167,17 @@ API 연동 시 참고한 첨부 문서:
 주요 code: SCHEMA_VALIDATION, MIXED_OR_EMPTY_USER, TRANSACTION_CONFLICT,
 EVENT_CONFLICT, REVISION_CONFLICT, OPENING_PAYABLE_MISMATCH, SIMULATION_LIMIT,
 MONEY_RANGE_LIMIT, OPTIMIZATION_LIMIT.
+
+고정지출 분리와 입력 계약에서 추가되는 오류 code는 다음과 같습니다.
+`INCONSISTENT_RECORD`, `SCHEDULE_FIXED_GROUP_REQUIRED`, `SCHEDULE_ENVELOPE_FORBIDDEN`,
+`SCHEDULE_FIXED_GROUP_FORBIDDEN`, `UNKNOWN_TRANSACTION_REPLACEMENT`,
+`DUPLICATE_TRANSACTION_REPLACEMENT`, `REPLACEMENT_ALREADY_RULED`,
+`REPLACEMENT_CHANNEL_MISMATCH`, `REPLACEMENT_CONFLICT`, `OVERRIDE_NOT_FIXED`,
+`DUPLICATE_OVERRIDE`, `OVERRIDE_CANCEL_CONFLICT`, `SCENARIO_FIXED_GROUP_INCOME`,
+`FLOW_INVARIANT`.
+
+추가 경고 code는 `IGNORED_LABEL_COLUMNS`, `FIXED_UNSCHEDULED`, `PENDING_SHARE_HIGH`입니다.
+`IGNORED_LABEL_COLUMNS`는 무시한 입력 열이 있을 때, `FIXED_UNSCHEDULED`는 규칙에 배정되지 않은 고정지출 잔여 거래가 있을 때 발생합니다.
 
 CLI는 SQLite 단일 Twin DB이며 사용자별 DB 또는 상위 애플리케이션의 분리 저장이 필요합니다.
 분석은 읽기 전용. update에는 expected_revision을 넣고 충돌 시 최신 상태를 다시 읽습니다.

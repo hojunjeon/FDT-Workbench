@@ -8,6 +8,7 @@ MONEY = {'type':'integer','minimum':0,'maximum':10**12}
 SIGNED = {'type':'integer','minimum':-10**12,'maximum':10**12}
 PROB = {'type':'number','minimum':0,'maximum':1}
 ENVS = ['외식','교통비','의료·건강','취미·여가','쇼핑','편의점·마트·잡화','기타']
+FIXED = ['주거','공과금','통신','보험·사회보험','세금','구독·멤버십']
 def obj(props, req=()):
     return {'type':'object','properties':props,'required':list(req),'additionalProperties':False}
 def arr(item, maximum=100): return {'type':'array','items':item,'maxItems':maximum}
@@ -18,12 +19,12 @@ def write(name, schema):
     (ROOT/f'{name}.json').write_text(json.dumps(schema,ensure_ascii=False,indent=2),encoding='utf-8')
 
 schedule = obj({
-    'rule_id':STR,'kind':enum('expense','income','reimbursement','savings_out','cash_withdrawal','debt_service','internal_transfer'),
-    'amount_krw':MONEY,'envelope':enum(*ENVS),'account_id':STR,'card_id':STR,'to_account_id':STR,
+    'rule_id':STR,'kind':enum('expense','fixed_expense','income','reimbursement','savings_out','cash_withdrawal','debt_service','internal_transfer'),
+    'amount_krw':MONEY,'envelope':enum(*ENVS),'fixed_group':enum(*FIXED),'account_id':STR,'card_id':STR,'to_account_id':STR,
     'frequency':enum('MONTHLY','INTERVAL','ONCE'),'next_date':DATE,
     'day_of_month':{'type':'integer','minimum':1,'maximum':31},
     'interval_days':{'type':'integer','minimum':1,'maximum':366},
-    'replaces_rule_id':STR
+    'replaces_rule_id':STR,'replaces_transaction_ids':{'type':'array','items':STR,'maxItems':100,'minItems':1,'uniqueItems':True}
 },['rule_id','kind','amount_krw','frequency','next_date'])
 account=obj({'account_id':STR,'balance_krw':SIGNED},['account_id','balance_krw'])
 card=obj({'card_id':STR,'kind':enum('DEBIT','CREDIT'),'settlement_account_id':STR,
@@ -43,7 +44,10 @@ scenario=obj({
     'income_multiplier':{'type':'number','minimum':0,'maximum':5},
     'expense_multiplier':{'type':'number','minimum':0,'maximum':5},
     'cancel_rule_ids':arr(STR,100),
-    'cash_events':arr(obj({'date':DATE,'account_id':STR,'amount_krw':MONEY,'direction':enum('INCOME','EXPENSE')},['date','account_id','amount_krw','direction']),100),
+    'fixed_multiplier':{'type':'number','minimum':0,'maximum':5},
+    'fixed_overrides':arr(obj({'rule_id':STR,'amount_krw':MONEY},['rule_id','amount_krw']),100),
+    'cash_events':arr(obj({'date':DATE,'account_id':STR,'amount_krw':MONEY,'direction':enum('INCOME','EXPENSE'),
+                           'fixed_group':enum(*FIXED)},['date','account_id','amount_krw','direction']),100),
     'asset_shock_fraction':{'type':'number','minimum':-1,'maximum':5}
 })
 goal=obj({'target_krw':MONEY,'reserve_krw':MONEY,'success_probability':PROB},['target_krw'])
@@ -63,7 +67,7 @@ request['allOf']=[
  {'if':{'properties':{'mode':{'not':{'const':'risk'}}}},'then':{'not':{'required':['stress_scenarios']}}}
 ]
 write('request',request)
-metric=obj({'value':{'type':['number','null']},'unit':enum('KRW','probability','count','ratio','days'),
+metric=obj({'value':{'type':['number','null']},'unit':enum('KRW','probability','count','ratio','days','months'),
             'basis':STR,'method':STR,'evidence':arr(STR,100)},['value','unit','basis','method','evidence'])
 warning=obj({'code':STR,'message':{'type':'string'},'details':{'type':'object'}},['code','message'])
 vis=obj({'id':STR,'kind':enum('band_line','line','bar','scatter','table'),

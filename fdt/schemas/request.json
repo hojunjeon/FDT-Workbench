@@ -94,6 +94,35 @@
           },
           "maxItems": 100
         },
+        "fixed_multiplier": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "fixed_overrides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rule_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "amount_krw": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000
+              }
+            },
+            "required": [
+              "rule_id",
+              "amount_krw"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
         "cash_events": {
           "type": "array",
           "items": {
@@ -117,6 +146,16 @@
                 "enum": [
                   "INCOME",
                   "EXPENSE"
+                ]
+              },
+              "fixed_group": {
+                "enum": [
+                  "주거",
+                  "공과금",
+                  "통신",
+                  "보험·사회보험",
+                  "세금",
+                  "구독·멤버십"
                 ]
               }
             },
@@ -314,6 +353,35 @@
             },
             "maxItems": 100
           },
+          "fixed_multiplier": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "fixed_overrides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rule_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "amount_krw": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "rule_id",
+                "amount_krw"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
           "cash_events": {
             "type": "array",
             "items": {
@@ -337,6 +405,16 @@
                   "enum": [
                     "INCOME",
                     "EXPENSE"
+                  ]
+                },
+                "fixed_group": {
+                  "enum": [
+                    "주거",
+                    "공과금",
+                    "통신",
+                    "보험·사회보험",
+                    "세금",
+                    "구독·멤버십"
                   ]
                 }
               },

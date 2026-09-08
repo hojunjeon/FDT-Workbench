@@ -101,7 +101,8 @@
               "probability",
               "count",
               "ratio",
-              "days"
+              "days",
+              "months"
             ]
           },
           "basis": {

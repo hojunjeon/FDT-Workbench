@@ -24,6 +24,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from fdt.errors import FDTError
 from fdt.ingest import load_csv, REQUIRED
 from fdt.mapping import ENVELOPES
+try:
+    from fdt.mapping import FIXED_GROUPS
+except ImportError:
+    # TODO: remove the temporary fallback once W1a publishes FIXED_GROUPS.
+    FIXED_GROUPS = ('주거', '공과금', '통신', '보험·사회보험', '세금', '구독·멤버십')
 from fdt.model import Twin, validate_snapshot
 from fdt.store import TwinStore
 from fdt.util import read_json, validate, validator, write_json
@@ -180,11 +185,11 @@ def create_app(data_dir: Path | None = None, port: int = 8765, *, test_hosts: se
 
     @app.get('/api/health')
     async def health():
-        return {'status': 'ok', 'version': '0.2.0', 'engine_version': '0.1.0', 'pid': os.getpid()}
+        return {'status': 'ok', 'version': '0.2.0', 'engine_version': '0.2.0', 'pid': os.getpid()}
 
     @app.get('/api/config')
     async def config():
-        return {'version': '0.2.0', 'token': token, 'envelopes': ENVELOPES, 'demos': DEMOS,
+        return {'version': '0.2.0', 'token': token, 'envelopes': ENVELOPES, 'fixed_groups': FIXED_GROUPS, 'demos': DEMOS,
                 'templates': {m: read_json(PROJECT / 'examples' / 'requests' / (m + '.json')) for m in ('forecast', 'what_if', 'goal', 'risk', 'optimize')},
                 'request_schema': validator('request').schema, 'snapshot_schema': validator('snapshot').schema,
                 'required_csv_columns': sorted(REQUIRED), 'limits': {'upload_mb': 8, 'csv_files': 4, 'rows': 10000, 'concurrent_jobs': 1, 'timeout_seconds': 300}}
