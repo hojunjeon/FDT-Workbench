@@ -1,27 +1,16 @@
-"""Date- and action-aware projections on the existing numeric model.
-
-This adapter deliberately does not translate everyday decisions into five engine
-modes. Spending, unpaid cards and earmarked money remain separate ledgers.
-"""
+"""Action-aware cash, credit and earmark ledgers using the original simulator."""
 from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
-from datetime import date
 import numpy as np
 
 from .coaching_contract import fail
+from .coaching_changes import prepare_bundle
+from .coaching_summary import q, frequency, summarize
+from .errors import FDTError
 from .mapping import ENVELOPES
 from .simulation import simulate
-
-
-def q(values) -> dict:
-    return {f'p{p}_krw': int(round(float(np.percentile(values, p)))) for p in (10, 50, 90)}
-
-
-def frequency(mask) -> dict:
-    return {'count': int(np.count_nonzero(mask)), 'paths': int(len(mask)),
-            'fraction': float(np.mean(mask)), 'basis': 'conditional_model_paths_not_real_world_probability'}
 
 
 @dataclass
@@ -45,65 +34,13 @@ class Projection:
 
 
 def project(twin, original, changes: list[dict]) -> Projection:
-    bundle = copy.deepcopy(original) if changes else original
-    notes = []
+    bundle, notes = prepare_bundle(twin, original, changes)
     components = twin.model['components']
     rules = {r['rule_id']: r for r in twin.model['rules']}
     future = [d.isoformat() for d in bundle.dates]
     all_dates = [twin.as_of] + future
     accounts = [a['account_id'] for a in (twin.snapshot or {}).get('accounts', [])]
     cards = {c['card_id']: c for c in (twin.snapshot or {}).get('cards', [])}
-
-    for c in changes:
-        if c['kind'] != 'income_delay':
-            continue
-        rule = rules.get(c['rule_id'])
-        if rule is None or components[rule['component']].get('kind') != 'income':
-            fail('지연할 수입 규칙을 찾을 수 없습니다.', rule_id=c['rule_id'])
-        occurrences = bundle.scheduled[c['rule_id']]
-        matches = [(i, vals) for i, vals in occurrences if future[i] == c['original_date']]
-        if len(matches) != 1:
-            fail('그 날짜의 입금 한 건을 확인할 수 없습니다. 금액 감소로 대체하지 않습니다.')
-        old_index, values = matches[0]
-        shifted = [(i, vals) for i, vals in occurrences if i != old_index]
-        if c['new_date'] in future:
-            shifted.append((future.index(c['new_date']), values.copy()))
-        else:
-            notes.append({'code': 'INCOME_AFTER_WINDOW', 'severity': 'user',
-                          'detail': f"{c['new_date']} 입금은 점검 기간 밖입니다. 소득 소멸이 아니라 수령 시점 이동입니다."})
-        bundle.scheduled[c['rule_id']] = sorted(shifted, key=lambda item: item[0])
-
-    for c in changes:
-        if c['kind'] != 'spending_cap':
-            continue
-        days = [i for i, d in enumerate(future) if c['start_date'] <= d <= c['end_date']]
-        columns = [j for j, f in enumerate(components) if f.get('kind') == 'expense'
-                   and f.get('envelope') == c['envelope'] and not f.get('protected') and not f.get('pending')
-                   and f.get('budgeted')]
-        # Confirmed/estimated scheduled consumption is not automatically cancelled.
-        committed = np.zeros(bundle.paths, dtype=np.int64)
-        for rid, occurrences in bundle.scheduled.items():
-            f = components[rules[rid]['component']]
-            if f.get('kind') == 'expense' and f.get('envelope') == c['envelope'] and f.get('budgeted'):
-                for i, values in occurrences:
-                    if i in days:
-                        committed += values
-        for event in changes:
-            if event['kind'] == 'expense' and event.get('envelope') == c['envelope'] and c['start_date'] <= event['date'] <= c['end_date']:
-                committed += event['amount_krw']
-        if np.any(committed > c['amount_krw']):
-            notes.append({'code': 'CAP_BELOW_COMMITTED_SPENDING', 'severity': 'user', 'envelope': c['envelope'],
-                          'detail': '예정 지출만으로 한도를 넘는 경로가 있습니다. 이 한도를 달성한 계획으로 표시하지 않습니다.'})
-        remaining = np.maximum(c['amount_krw']-committed, 0)
-        # Chronological capping, not an invented reduction percentage. Integer
-        # allocation is exact and deterministic even across multiple components.
-        for i in days:
-            for j in columns:
-                values = bundle.variable[:, i, j]
-                kept = np.minimum(values, remaining)
-                bundle.variable[:, i, j] = kept
-                remaining -= kept
-
     sim = simulate(twin, bundle)
     p, h = bundle.paths, len(future)
     usage = np.concatenate([np.zeros((p, 1, len(ENVELOPES)), dtype=np.int64), sim.budget_by_envelope], axis=1)
@@ -168,75 +105,22 @@ def project(twin, original, changes: list[dict]) -> Projection:
     for rid, occurrences in bundle.scheduled.items():
         for _, values in occurrences:
             totals[:, rules[rid]['component']] += values
+    if cash is not None:
+        # Independent pathwise check of the adapter's extra ledgers. Earmarking
+        # changes spendability, never cash, liabilities or economic outflow.
+        opening_free = sum(a['balance_krw'] for a in twin.snapshot['accounts']) - sum(
+            c.get('opening_payable_krw', 0) for c in cards.values())
+        expected_free = np.full(p, opening_free, dtype=np.int64)
+        for j, component in enumerate(components):
+            if component['kind'] in ('income', 'reimbursement'):
+                expected_free += totals[:, j]
+            elif component['kind'] not in ('internal_transfer', 'card_settlement'):
+                expected_free -= totals[:, j]
+        expected_free -= sum(c['amount_krw'] for c in changes if c['kind'] == 'expense')
+        if not np.array_equal(cash[:, -1, :].sum(axis=1)-payable[:, -1], expected_free):
+            raise FDTError('COACHING_BALANCE_INVARIANT', '행동별 현금·미결제 전이와 자금 흐름이 일치하지 않습니다.')
     return Projection(all_dates, cash, payable, locked, usage, spending, fixed,
                       sorted(calendar, key=lambda row: (row['date'], row['event_type'])),
                       accounts, totals, extra_direct, notes)
 
 
-def summarize(twin, projection: Projection, reserve: int | None, observed_budgets: list[dict]) -> dict:
-    pr = projection
-    end = pr.dates[-1]
-    result = {'through_date': end, 'budget_cutoff_date': None, 'budgets': [], 'cash': None,
-              'upcoming': [r for r in pr.calendar if r['date'] <= end], 'warnings': pr.notes}
-    for b in observed_budgets:
-        indexes = [i for i, d in enumerate(pr.dates) if d[:7] == twin.as_of[:7]]
-        used = b['observed_used_krw'] + pr.usage[:, indexes, ENVELOPES.index(b['envelope'])].sum(axis=1)
-        remaining = b['budget_krw']-used
-        result['budgets'].append({**b, 'remaining_at_cutoff': q(remaining), 'over_budget': frequency(remaining < 0),
-                                  'coverage_end': pr.dates[indexes[-1]]})
-        result['budget_cutoff_date'] = pr.dates[indexes[-1]]
-    if end[:7] != twin.as_of[:7]:
-        result['warnings'] = result['warnings'] + [{'code': 'NEXT_MONTH_BUDGET_UNCONFIRMED', 'severity': 'user',
-            'detail': '다음 달 예산을 이번 달 예산과 같다고 가정하지 않습니다. 봉투 잔여는 이번 달까지만 표시합니다.'}]
-    if pr.cash is None:
-        return result
-    cash = pr.cash.sum(axis=2)
-    free = pr.free - pr.locked.sum(axis=2) - (reserve or 0)
-    any_short = np.any(pr.cash < 0, axis=(1, 2))
-    current_usable = pr.cash - pr.locked
-    result['cash'] = {
-        'period_account_shortfall': frequency(any_short),
-        'terminal_account_shortfall': frequency(np.any(pr.cash[:, -1, :] < 0, axis=1)),
-        'period_protected_cash_breach': frequency(np.any(free < 0, axis=1)) if reserve is not None else None,
-        'terminal_balance': q(cash[:, -1]), 'lowest_balance': q(cash.min(axis=1)),
-        'terminal_unencumbered': q(pr.free[:, -1]),
-        'lowest_after_protection': q(free.min(axis=1)) if reserve is not None else None,
-        'accounts': []}
-    for j, account in enumerate(pr.accounts):
-        headroom = np.minimum(current_usable[:, :, j].min(axis=1), free.min(axis=1))
-        result['cash']['accounts'].append({'account_id': account,
-            'period_shortfall': frequency(np.any(pr.cash[:, :, j] < 0, axis=1)),
-            'lowest_balance': q(pr.cash[:, :, j].min(axis=1)),
-            'additional_one_off_room': q(headroom) if reserve is not None else None,
-            'room_basis': 'same_account_and_total_unencumbered_minimum_after_existing_spending_not_a_budget'})
-    totals = pr.totals
-    by_kind = {}
-    direct_spend = pr.extra_direct
-    direct_fixed = 0
-    cards = {c['card_id']: c for c in (twin.snapshot or {}).get('cards', [])}
-    for j, f in enumerate(twin.model['components']):
-        value = float(totals[:, j].mean())
-        by_kind[f['kind']] = by_kind.get(f['kind'], 0.) + value
-        credit = f.get('card_id') and cards[f['card_id']]['kind'] == 'CREDIT'
-        if not credit and f['kind'] == 'expense':
-            direct_spend += value
-        if not credit and f['kind'] == 'fixed_expense':
-            direct_fixed += value
-    opening = sum(a['balance_krw'] for a in twin.snapshot['accounts'])
-    terminal = float(cash[:, -1].mean())
-    inflow = by_kind.get('income', 0) + by_kind.get('reimbursement', 0)
-    other_out = sum(by_kind.get(k, 0) for k in ('debt_service', 'savings_out', 'cash_withdrawal'))
-    # The simulator's cash/free invariant identifies actual card settlement cash,
-    # rather than counting both purchases and card payments as cash outflow.
-    card_settlement = opening + inflow - direct_spend - direct_fixed - other_out - terminal
-    bridge = {'opening_cash_krw': opening,
-              'income_krw': round(by_kind.get('income', 0)), 'reimbursement_krw': round(by_kind.get('reimbursement', 0)),
-              'direct_spending_krw': round(direct_spend), 'direct_fixed_krw': round(direct_fixed),
-              'debt_service_krw': round(by_kind.get('debt_service', 0)), 'savings_out_krw': round(by_kind.get('savings_out', 0)),
-              'cash_withdrawal_krw': round(by_kind.get('cash_withdrawal', 0)), 'card_settlement_krw': round(card_settlement),
-              'terminal_cash_krw': round(terminal), 'basis': 'path_means_not_sum_of_medians'}
-    reconstructed = opening + bridge['income_krw'] + bridge['reimbursement_krw'] - sum(bridge[k] for k in (
-        'direct_spending_krw', 'direct_fixed_krw', 'debt_service_krw', 'savings_out_krw', 'cash_withdrawal_krw', 'card_settlement_krw'))
-    bridge['rounding_adjustment_krw'] = bridge['terminal_cash_krw'] - reconstructed
-    result['cash']['explanation'] = bridge
-    return result
