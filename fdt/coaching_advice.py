@@ -1,7 +1,7 @@
 """Choose one next action without inventing a spending decision."""
 from __future__ import annotations
 
-DISCRETIONTIONARY = {'외식', '취미·여가', '쇼핑'}
+DISCRETIONARY = {'외식', '취미·여가', '쇼핑'}
 
 
 def _action(kind: str, title: str, detail: str, evidence: list[str], **extra) -> dict:
