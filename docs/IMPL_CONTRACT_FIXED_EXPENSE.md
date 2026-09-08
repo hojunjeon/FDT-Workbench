@@ -57,7 +57,8 @@ IGNORED  = ('is_fixed', 'is_recurring', 'spend_pattern', 'classify_source')
 1. `transaction_type in ('CARD_BILL','CARD_SETTLEMENT')` → `card_settlement`
 2. `subcategory == 'ATM 출금'` → `cash_withdrawal`
 3. `subcategory == '대출 상환'` → `debt_service`
-4. `transaction_type in ('TRANSFER','TRANSFER_OUT','TRANSFER_IN')`이면서 방향이 지출/이체이거나 `exclude_tag in ('INTERNAL_TRANSFER','SELF_TRANSFER')` → `category == '저축·투자'`면 `savings_out`, 아니면 `internal_transfer`
+4. `exclude_tag in ('INTERNAL_TRANSFER','SELF_TRANSFER')`이거나, `direction == 'TRANSFER'`(열이 있을 때)이거나, `transaction_type in ('TRANSFER','TRANSFER_OUT')`이면서 `category == '저축·투자'` → `category == '저축·투자'`면 `savings_out`, 아니면 `internal_transfer`.
+   **주의(2026-09-08 정정)**: `TRANSFER_OUT` 자체는 내부 이체의 근거가 아니다. 축의금·회비·모임 정산 송금이 `TRANSFER_OUT`으로 기록되며 이는 소비다. 내 계좌 간 이동은 사용자 태그(금융망에는 없는 정보)로만 식별한다. `direction` 열이 없을 때 `TRANSFER_OUT`의 도출 방향은 `EXPENSE`, `TRANSFER` 타입만 `TRANSFER`다.
 5. 입금(`DEPOSIT`, `TRANSFER_IN`으로 판정된 수입) → `subcategory == '모임 정산'`이면 `reimbursement`, 아니면 `income`
 6. 남은 지출 중 `confirm_status != 'PENDING'`이고 `fixed_group(subcategory)`가 있으면 → **`fixed_expense`**
 7. 그 외 지출 → `expense`

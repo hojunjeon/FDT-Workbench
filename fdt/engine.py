@@ -5,7 +5,7 @@ import math
 from datetime import date
 import numpy as np
 from .errors import FDTError
-from .mapping import ENVELOPES, MAPPING_VERSION
+from .mapping import ENVELOPES, FIXED_GROUPS, MAPPING_VERSION
 from .model import Twin, MODEL_VERSION
 from .simulation import RandomBundle, Simulation, generate_bundle, simulate
 from .util import digest, month_date, probability, quantiles, validate, warning
@@ -20,7 +20,8 @@ LIMITATIONS = [
     '음수 현금은 미충족 자금 수요입니다. 실제 계좌의 초과 출금 허용을 의미하지 않습니다.',
     '현금 인출 이후의 지출, 미등록 계좌/보험 보장, 투자 수익률 및 대출 원리금 분해는 알 수 없습니다.',
     'resource_change는 구매 시점 지출 준비 여력 프록시이며 현금 잔액이나 순자산이 아닙니다.',
-    'P10/P50/P90는 모델 경로의 분위수입니다. 실세계 결과를 포함한다고 보증하는 신뢰구간이 아닙니다.'
+    'P10/P50/P90는 모델 경로의 분위수입니다. 실세계 결과를 포함한다고 보증하는 신뢰구간이 아닙니다.',
+    '고정지출은 세부분류 대응표로 판정한 종류이며 계약상 의무나 해지 불가를 의미하지 않습니다. 미확정(PENDING) 소비는 잔액에는 포함되고 봉투 통계에서는 제외됩니다.'
 ]
 
 
@@ -58,7 +59,14 @@ def _merge_scenario(base: dict, override: dict) -> dict:
     for k,v in override.items():
         if k=='expense_reductions':
             merged[k]={**merged.get(k,{}),**v}
+        elif k in ('fixed_overrides','cancel_rule_ids'):
+            merged[k]=copy.deepcopy(v)
         else: merged[k]=v
+    override_ids=[x['rule_id'] for x in merged.get('fixed_overrides',[]) or []]
+    if len(override_ids)!=len(set(override_ids)):
+        raise FDTError('DUPLICATE_OVERRIDE','fixed_overrides에 같은 rule_id가 중복됩니다.')
+    if set(override_ids)&set(merged.get('cancel_rule_ids',[]) or []):
+        raise FDTError('OVERRIDE_CANCEL_CONFLICT','취소한 규칙은 금액을 교체할 수 없습니다.')
     return merged
 
 
@@ -107,8 +115,19 @@ class Engine:
                  'as_of':(self.twin.snapshot or {}).get('as_of'),'detail':'USER_ASSUMPTION 잔액은 실제 잔액이 아닙니다.'},
                 {'code':'SCENARIO','source':'REQUEST','values':req.get('scenario',{})}
             ],
-            'warnings':copy.deepcopy(self.twin.model['audit']['warnings']),
-            'limitations':list(LIMITATIONS),'metrics':{},'datasets':{},'visualizations':[]}
+             'warnings':copy.deepcopy(self.twin.model['audit']['warnings']),
+             'limitations':list(LIMITATIONS),'metrics':{},'datasets':{},'visualizations':[]}
+        ignored=sorted(self.twin.metadata.get('ignored_columns',[]) or [])
+        if ignored:
+            result['warnings'].append(warning('IGNORED_LABEL_COLUMNS','분류에 사용하지 않는 라벨 열을 무시했습니다.',columns=ignored))
+        audit=self.twin.model.get('audit',{})
+        observed_expense=audit.get('kind_totals_krw',{}).get('expense',0)
+        observed_pending=audit.get('pending_consumption_krw',0)
+        pending_share=observed_pending/observed_expense if observed_expense else 0
+        if pending_share>0.05:
+            result['warnings'].append(warning('PENDING_SHARE_HIGH','미확정 소비 금액 비율이 5%를 초과합니다.',
+                                               share=pending_share,rows=audit.get('pending_rows',0),krw=observed_pending))
+            if result['status']=='ok': result['status']='partial'
         if missing:
             result['required_inputs']=missing
             result['warnings'].append(warning('ABSOLUTE_STATE_UNAVAILABLE','현재 잔액/정산 정보 부족으로 절대 현금 경로는 계산하지 않습니다.',missing=missing))
@@ -119,18 +138,33 @@ class Engine:
         result['warnings'].append(warning('UNCALIBRATED_MODEL','확률은 모델 조건부 추정이며 외부 검증을 거치지 않았습니다.'))
         _put_quantiles(result,'terminal_resource_change',sim.resource[:,-1],basis='purchase_time_resource_proxy')
         _put_quantiles(result,'terminal_cash',sim.cash_total[:,-1] if sim.cash_total is not None else None,basis)
-        _put_quantiles(result,'total_expense',sim.consumption.sum(axis=1))
+        consumption_total=sim.consumption.sum(axis=1)
+        fixed_total=sim.fixed.sum(axis=1)
+        pending_total=sim.pending.sum(axis=1)
+        outflow_total=consumption_total+fixed_total
+        _put_quantiles(result,'total_expense',consumption_total,basis='simulation_consumption_only')
+        _put_quantiles(result,'total_fixed',fixed_total,basis='simulation_fixed_only')
         result['metrics']['p_total_cash_shortfall']=metric(probability(sim.total_short) if sim.total_short is not None else None,'probability',basis)
         result['metrics']['p_any_account_shortfall']=metric(probability(sim.any_account_short) if sim.any_account_short is not None else None,'probability',basis)
-        result['metrics']['expected_expense_krw']=metric(round(float(sim.consumption.sum(axis=1).mean())))
+        result['metrics']['expected_expense_krw']=metric(round(float(consumption_total.mean())),basis='simulation_consumption_only')
+        result['metrics']['expected_fixed_krw']=metric(round(float(fixed_total.mean())),basis='simulation_fixed_only')
+        result['metrics']['fixed_monthly_p50_krw']=metric(round(float(np.percentile(fixed_total,50))*30.4375/req['horizon_days']),basis='simulation_fixed_only',method='p50_period_scaled_to_month')
+        outflow_mean=float(outflow_total.mean())
+        result['metrics']['fixed_share_of_outflow']=metric(round(float(fixed_total.mean()/outflow_mean),6) if outflow_mean else None,'ratio',basis='simulation_fixed_and_consumption')
+        result['metrics']['total_outflow_p50_krw']=metric(int(round(float(np.percentile(outflow_total,50)))),basis='simulation_consumption_plus_fixed')
+        result['metrics']['pending_expense_p50_krw']=metric(int(round(float(np.percentile(pending_total,50)))),basis='simulation_pending_only')
+        result['metrics']['pending_consumption_krw']=metric(audit.get('pending_consumption_krw',0),'KRW',basis='observed',method='audit_pending_sum')
         result['datasets']['projection']=sim.daily_rows(self.twin.as_of)
         result['datasets']['calendar']=sim.calendar
         result['datasets']['envelopes']=[{'envelope':env,**{k+'_krw':v for k,v in quantiles(sim.by_envelope[:,:,j].sum(axis=1)).items()}}
                                           for j,env in enumerate(ENVELOPES)]
+        result['datasets']['fixed_groups']=[{'group':group,**{k+'_krw':v for k,v in quantiles(sim.fixed_by_group[:,:,j].sum(axis=1)).items()}}
+                                           for j,group in enumerate(FIXED_GROUPS)]
         prefix='cash_balance' if not missing else 'resource_change'
         result['visualizations'].append(visual('projection','band_line','예측 자금 경로' if not missing else '구매시점 자금 여력 변화 (현금 잔액 아님)',
             'projection','date',[prefix+'_p50_krw'],lower=prefix+'_p10_krw',upper=prefix+'_p90_krw'))
-        result['visualizations'].append(visual('envelopes','bar','봉투별 예상 소비','envelopes','envelope',['p50_krw']))
+        result['visualizations'].append(visual('envelopes','bar','봉투별 예상 소비 (고정지출 제외)','envelopes','envelope',['p50_krw']))
+        result['visualizations'].append(visual('fixed_groups','bar','고정지출 그룹별 예상','fixed_groups','group',['p50_krw']))
         result['visualizations'].append(visual('calendar','table','반복 일정 / 청구 예상','calendar','date',['expected_amount_krw']))
         return result
 
@@ -141,7 +175,10 @@ class Engine:
         _put_quantiles(result,'paired_terminal_resource_delta',branch.resource[:,-1]-base.resource[:,-1],basis='paired_common_random_numbers')
         _put_quantiles(result,'paired_terminal_cash_delta',branch.cash_total[:,-1]-base.cash_total[:,-1] if branch.cash_total is not None else None,basis='paired_common_random_numbers')
         _put_quantiles(result,'paired_expense_saving',base.consumption.sum(axis=1)-branch.consumption.sum(axis=1),basis='paired_common_random_numbers')
+        _put_quantiles(result,'paired_fixed_delta',branch.fixed.sum(axis=1)-base.fixed.sum(axis=1),basis='paired_common_random_numbers')
         result['metrics']['branch_p_any_account_shortfall']=metric(probability(branch.any_account_short) if branch.any_account_short is not None else None,'probability')
+        result['datasets']['branch_fixed_groups']=[{'group':group,**{k+'_krw':v for k,v in quantiles(branch.fixed_by_group[:,:,j].sum(axis=1)).items()}}
+                                                  for j,group in enumerate(FIXED_GROUPS)]
         prefix='cash_balance' if branch.cash_total is not None else 'resource_change'
         rows=[]
         for a,b in zip(result['datasets']['projection'],result['datasets']['branch_projection']):
@@ -172,7 +209,8 @@ class Engine:
             result['status']='insufficient_data'
             result['metrics']['p_goal_reached']=metric(None,'probability')
             result['metrics']['p_goal_and_no_shortfall']=metric(None,'probability')
-            result['decision']={'goal_basis':'cash_minus_card_payable_minus_reserve','feasibility':'unknown'}
+            result['decision']={'goal_basis':'cash_minus_card_payable_minus_reserve','feasibility':'unknown',
+                                'fixed_monthly_p50_krw':result['metrics']['fixed_monthly_p50_krw']['value']}
             return
         available,reached,joint=_goal_values(sim,target,reserve)
         result['metrics']['p_goal_reached']=metric(probability(reached),'probability')
@@ -189,6 +227,7 @@ class Engine:
         result['visualizations'].append(visual('goal_distribution','line','만기 가용 현금 분위수와 목표','goal_distribution','percentile',['available_krw','target_krw']))
         result['decision']={'goal_basis':'cash_minus_card_payable_minus_reserve','deadline':sim.dates[-1].isoformat(),
             'required_success_probability':desired,'feasibility':'meets_threshold' if probability(joint)>=desired else 'below_threshold',
+            'fixed_monthly_p50_krw':result['metrics']['fixed_monthly_p50_krw']['value'],
             'external_income_installment_days':list(range(1,req['horizon_days']+1,30)),
             'external_income_note':'이 금액은 신규 외부 자금 조건이며 절약으로 자동 생성되지 않습니다. 중간 계좌 부족을 해소한다고 보장하지 않습니다.'}
 
@@ -211,6 +250,12 @@ class Engine:
             result['visualizations'].append(visual('shortfall_timing','line','첫 부족일 확률 (경로별 최초 1회)','first_shortfall','date',['probability_first_shortfall'],'probability'))
         else:
             result['metrics']['p_liquid_below_reserve']=metric(None,'probability')
+        monthly_fixed=result['metrics']['fixed_monthly_p50_krw']['value']
+        if sim.free is None or not monthly_fixed:
+            coverage=None
+        else:
+            coverage=max(float(sim.free[:,0].mean()),0.0)/monthly_fixed
+        result['metrics']['fixed_coverage_months']=metric(round(coverage,6) if coverage is not None else None,'months',basis='opening_free_over_simulation_fixed_monthly_p50')
         result['metrics']['support_income_ratio']=metric(self.twin.model['behavior']['support_income_ratio'],'ratio',basis='observed_labels',method='family_labeled_income_over_total_income')
         totals={}
         first_day=self.twin.model['start']; end=date.fromisoformat(self.twin.as_of)
@@ -225,7 +270,9 @@ class Engine:
         result['metrics']['income_cv_complete_months']=metric(cv,'ratio',basis='observed_complete_months',method='sample_std_over_mean')
         result['metrics']['income_complete_month_count']=metric(len(vals),'count',basis='observed',method='calendar_complete_months')
         self._budget_risk(result,sim)
-        stresses=req.get('stress_scenarios',[{'name':'수입 20% 감소 가정','income_multiplier':0.8},{'name':'소비 물가 10% 상승 가정','expense_multiplier':1.1}])
+        stresses=req.get('stress_scenarios',[{'name':'수입 20% 감소 가정','income_multiplier':0.8},
+            {'name':'소비 물가 10% 상승 가정','expense_multiplier':1.1},
+            {'name':'고정지출 10% 인상 가정','fixed_multiplier':1.1}])
         rows=[]
         for i,stress in enumerate(stresses):
             scenario=_merge_scenario(req.get('scenario',{}),stress)
@@ -249,7 +296,7 @@ class Engine:
         count=sum(d<=monthend for d in sim.dates)
         rows=[]
         for env,limit in budgets.items():
-            used=sum(t.budget_amount_krw for t in self.twin.transactions if t.active and t.envelope==env and t.date[:7]==self.twin.as_of[:7])
+            used=sum(t.budget_amount_krw for t in self.twin.transactions if t.active and t.kind=='expense' and not t.pending and t.envelope==env and t.date[:7]==self.twin.as_of[:7])
             total=sim.budget_by_envelope[:,:count,ENVELOPES.index(env)].sum(axis=1)+used
             rows.append({'envelope':env,'budget_krw':limit,'observed_used_krw':used,
                 'projected_used_p50_krw':quantiles(total)['p50'],'p_over_budget':probability(total>limit),
@@ -262,7 +309,8 @@ class Engine:
 
     def _optimize(self,result: dict,req: dict,bundle: RandomBundle,base: Simulation) -> None:
         if base.free is None:
-            result['status']='insufficient_data';result['decision']={'feasibility':'unknown','selected_candidate_id':None}
+            result['status']='insufficient_data';result['decision']={'feasibility':'unknown','selected_candidate_id':None,
+                'fixed_monthly_p50_krw':result['metrics']['fixed_monthly_p50_krw']['value']}
             return
         opt=req.get('optimization',{})
         envelopes=opt.get('envelopes',['외식','취미·여가','쇼핑'])
@@ -288,7 +336,7 @@ class Engine:
             for env,minval in opt.get('minimum_remaining_monthly_krw',{}).items():
                 remaining=0.
                 for j,f in enumerate(self.twin.model['components']):
-                    if f['kind']=='expense' and f['envelope']==env and not f['protected']:
+                    if f.get('kind')=='expense' and not f.get('pending',False) and f.get('envelope')==env and not f.get('protected',False):
                         remaining+=float(bundle.variable[:,:,j].sum(axis=1).mean())*(1-scenario['expense_reductions'].get(env,0))*scenario.get('expense_multiplier',1)*30.4375/req['horizon_days']
                 floors_ok &= remaining+1e-8>=minval
             saving=max(0,int(round(base_spend-float(sim.consumption.sum(axis=1).mean()))))
@@ -310,6 +358,7 @@ class Engine:
         result['decision']={'feasibility':'feasible' if selected else 'infeasible','selected_candidate_id':selected['candidate_id'] if selected else None,
             'selected_reductions':selected['reductions'] if selected else None,
             'target_krw':target,'reserve_krw':reserve,'required_joint_success':desired,'maximum_any_account_shortfall':maxshort,
+            'fixed_monthly_p50_krw':result['metrics']['fixed_monthly_p50_krw']['value'],
             'optimality_scope':'EXHAUSTIVE_FINITE_GRID_ONLY','objective':'MIN_EXPECTED_CONSUMPTION_REDUCTION',
             'protected_fixed_and_recurring':True,'executed':False}
         result['visualizations'].append(visual('candidate_frontier','scatter','행동 변화와 목표 확률 — 유한 후보','candidates','expected_saving_krw',['p_goal_and_no_shortfall'],'probability',note='x는 KRW, y는 확률. feasible/selected 필드를 범례로 사용합니다. 전역 최적 금융전략을 의미하지 않습니다.'))

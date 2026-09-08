@@ -24,10 +24,26 @@ def test_health_and_static(web):
 
 def test_config_uses_engine_contract(web):
     data = web.get('/api/config').json()
-    assert len(data['templates']) == 5 and len(data['envelopes']) == 7
+    assert len(data['templates']) == 5
+    assert len(data['envelopes']) == 7
+    assert len(data['fixed_groups']) == 6
     for template in data['templates'].values():
         validate('request', template)
     assert data['limits']['concurrent_jobs'] == 1
+
+
+def test_request_schema_validates_fixed_overrides(web):
+    request = read_json(ROOT / 'examples/requests/what_if.json')
+    request['scenario']['fixed_overrides'] = [{'rule_id': 'fixed-rule', 'amount_krw': 0}]
+    response = web.post('/api/validate/request', json=request)
+    assert response.status_code == 200
+    assert response.json()['status'] == 'valid'
+
+    invalid = copy.deepcopy(request)
+    invalid['scenario']['fixed_overrides'][0]['amount_krw'] = -1
+    response = web.post('/api/validate/request', json=invalid)
+    assert response.status_code == 422
+    assert response.json()['error']['code'] == 'SCHEMA_VALIDATION'
 
 
 @pytest.mark.parametrize('id_', ['001', '002', '003', '004'])

@@ -11,11 +11,10 @@ FILES=sorted((ROOT/'data/demo').glob('*.csv'))
 
 @pytest.fixture
 def row():
-    return {'user_id':'U','transaction_id':'T1','source':'SEED','direction':'EXPENSE','transaction_type':'CARD',
-            'payment_method':'CARD','transaction_date':'2026-09-06','transaction_time':'9:05','category':'식비',
+    return {'user_id':'U','transaction_id':'T1','source':'SEED','transaction_type':'CARD',
+            'transaction_date':'2026-09-06','transaction_time':'9:05','category':'식비',
             'subcategory':'점심','merchant':'가맹점','merchant_id':'M','amount_krw':'100','account_id':'','card_id':'C',
-            'is_fixed':'FALSE','is_recurring':'FALSE','spend_pattern':'ROUTINE','confirm_status':'AUTO',
-            'exclude_tag':'NONE','status':'NORMAL'}
+            'confirm_status':'AUTO','exclude_tag':'NONE','status':'NORMAL'}
 
 @pytest.fixture
 def snapshot():
@@ -36,7 +35,8 @@ def make_exact(row,snapshot):
         t=Twin([normalize(r)],'2026-09-06',snap)
         f={'kind':kind,'envelope':'외식' if kind=='expense' else None,
            'account_id':None if kind=='expense' else 'A','card_id':'C' if kind=='expense' else None,
-           'to_account_id':'B' if kind=='internal_transfer' else None,'protected':protected,'budgeted':True}
+           'to_account_id':'B' if kind=='internal_transfer' else None,'fixed_group':None,'pending':False,
+           'protected':protected,'budgeted':True}
         t.model['components']=[f];t.model['rules']=[]
         a=np.zeros((20,horizon,1),dtype=np.int64);a[:,0,0]=amount
         from datetime import date,timedelta

@@ -5,7 +5,7 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 from .errors import FDTError
-from .ingest import normalize, transaction_signature
+from .ingest import normalize, record_signature, transaction_signature
 from .model import Twin, validate_snapshot
 from .util import canonical, digest, validate
 
@@ -16,7 +16,7 @@ def apply_events(twin: Twin, events: list[dict]) -> Twin:
         raise FDTError('EVENT_BATCH_LIMIT','이벤트 배열은 최대 1,000건입니다.')
     txs={t.id:t for t in twin.transactions}
     log=copy.deepcopy(twin.event_log); snapshot=copy.deepcopy(twin.snapshot)
-    as_of=twin.as_of;changed=False
+    as_of=twin.as_of;changed=False;reclassified_count=0
     snapshot_dirty=twin.metadata.get('snapshot_dirty',False)
     for event in events:
         validate('event',event)
@@ -29,14 +29,22 @@ def apply_events(twin: Twin, events: list[dict]) -> Twin:
         kind=event['type']
         if kind=='transaction':
             if 'transaction' not in event: raise FDTError('EVENT_PAYLOAD_REQUIRED','transaction')
-            t=normalize(event['transaction'],{'event_id':id_})
+            payload={k:v for k,v in event['transaction'].items()
+                     if k not in ('direction','payment_method','exclude_tag','to_account_id') or v}
+            t=normalize(payload,{'event_id':id_})
             if t.source!='LIVE': raise FDTError('SEED_NOT_LIVE','이벤트 경로는 LIVE만 허용합니다.')
             if t.user_id!=twin.user_id: raise FDTError('EVENT_USER_MISMATCH','거래 사용자 불일치')
-            if t.id in txs and transaction_signature(t)!=transaction_signature(txs[t.id]):
-                raise FDTError('TRANSACTION_CONFLICT',t.id)
-            if t.id not in txs:
+            if t.id in txs:
+                existing=txs[t.id]
+                if record_signature(t)!=record_signature(existing):
+                    raise FDTError('TRANSACTION_CONFLICT',t.id)
+                if transaction_signature(t)!=transaction_signature(existing):
+                    # Classification-only updates preserve balances and snapshot readiness.
+                    txs[t.id]=t;reclassified_count+=1
+            else:
                 snapshot_dirty=True
-            txs.setdefault(t.id,t);as_of=max(as_of,t.date)
+                txs[t.id]=t
+            as_of=max(as_of,t.date)
         elif kind=='cancel_transaction':
             if 'transaction_id' not in event: raise FDTError('EVENT_PAYLOAD_REQUIRED','transaction_id')
             id_tx=event['transaction_id']
@@ -44,7 +52,8 @@ def apply_events(twin: Twin, events: list[dict]) -> Twin:
             original=txs[id_tx]
             if original.source!='LIVE': raise FDTError('CANNOT_CANCEL_SEED','SEED는 실제 결제가 아닙니다.')
             if original.active: snapshot_dirty=True
-            row={**original.raw,'status':'CANCELED'}
+            row={k:v for k,v in {**original.raw,'status':'CANCELED'}.items()
+                 if k not in ('direction','payment_method','exclude_tag','to_account_id') or v}
             txs[id_tx]=normalize(row,{**original.origin,'cancel_event_id':id_})
             # The balance is not changed: a new account snapshot is needed from the gateway.
         else:
@@ -59,6 +68,8 @@ def apply_events(twin: Twin, events: list[dict]) -> Twin:
     metadata=copy.deepcopy(twin.metadata)
     metadata['event_count']=len(log)
     metadata['snapshot_dirty']=snapshot_dirty
+    if reclassified_count:
+        metadata['reclassified_count']=metadata.get('reclassified_count',0)+reclassified_count
     return Twin(list(txs.values()),as_of,snapshot,metadata,twin.revision+1,log)
 
 

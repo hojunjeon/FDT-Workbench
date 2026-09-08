@@ -9,7 +9,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-Local%20Embedded-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Zero External API](https://img.shields.io/badge/Privacy-100%25%20Local%20Offline-success)](NOTICE.md)
-[![Test Suite](https://img.shields.io/badge/Tests-227%20Passed-brightgreen)](QA_REPORT.md)
+[![Test Suite](https://img.shields.io/badge/Tests-260%20Passed-brightgreen)](QA_REPORT.md)
 [![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Research-orange)](NOTICE.md)
 
 ---
@@ -66,6 +66,15 @@
 
 ---
 
+## 2-1. 고정지출 분리와 입력 계약 (v0.2, 매핑 2.0)
+
+- 월세·관리비·전기·가스·수도·통신·인터넷·보험·사회보험·자동차세·구독·코워킹은 소비 봉투가 아니라 **고정지출 종류(`fixed_expense`)** 로 분리되어 6개 그룹(주거, 공과금, 통신, 보험·사회보험, 세금, 구독·멤버십)으로 집계됩니다. 잔액·현금흐름에는 그대로 반영되고, 봉투 통계·예산·감축 대상에서는 제외됩니다.
+- CSV 입력은 금융망 기록 열과 KeyFin 확정 분류만 받습니다. `is_fixed`, `is_recurring`, `spend_pattern`, `classify_source` 열은 있어도 읽지 않고 `IGNORED_LABEL_COLUMNS` 경고만 냅니다. `direction`, `payment_method`, `exclude_tag`는 선택 열입니다.
+- `confirm_status=PENDING` 소비는 잔액과 총소비에는 포함되고 봉투 통계에서는 제외됩니다. 비중이 5%를 넘으면 결과 `status`가 `partial`이 됩니다.
+- 상세 계약: [docs/DESIGN_FIXED_EXPENSE_SEPARATION.md](docs/DESIGN_FIXED_EXPENSE_SEPARATION.md), [docs/IMPL_CONTRACT_FIXED_EXPENSE.md](docs/IMPL_CONTRACT_FIXED_EXPENSE.md), [docs/INTEGRATION.md](docs/INTEGRATION.md).
+
+---
+
 ## 3. 5대 시뮬레이션 엔진 모드
 
 KeyFin FDT 엔진은 사용자의 질문과 목적에 맞춘 **5가지 핵심 모드**를 제공합니다.
@@ -79,6 +88,7 @@ KeyFin FDT 엔진은 사용자의 질문과 목적에 맞춘 **5가지 핵심 �
 - **목적**: 소비 감축, 소득 충격, 일회성 이벤트 등 금융 조건 변경 시 기본 미래와의 차이를 비교합니다.
 - **주요 입력**:
   - 7대 소비 봉투별 감축률 (외식, 교통비, 의료·건강, 취미·여가, 쇼핑, 편의점·마트·잡화, 기타)
+  - 고정지출 배율(`fixed_multiplier`)과 고정지출 규칙 금액 교체(`fixed_overrides`, 예: 월세 70만 → 75만)
   - 소득 배율 (예: 80%로 감소) / 소비 물가 배율
   - 일회성 현금 이벤트 (보너스 입금, 비정기 지출 등)
   - 정기 결제(구독, 통신비 등) 취소 여부
@@ -218,7 +228,7 @@ python -m pip install -r requirements-web.lock
 # 2. 서버 실행
 python launcher.py --no-install --no-browser --port 8765
 
-# 3. 전체 테스트 스위트 실행 (227개 단위/통합 테스트)
+# 3. 전체 테스트 스위트 실행 (260개 단위/통합 테스트)
 python -m pip install -r requirements-qa.txt
 python -m pytest -q
 ```
@@ -341,7 +351,7 @@ with httpx.Client(base_url=BASE_URL, timeout=30) as client:
 ├── examples/                   # 💡 모드별 Request / Snapshot 샘플 JSON
 ├── docs/                       # 📖 상세 기술 명세, API 규격 및 아키텍처 문서
 ├── qa/                         # 📸 UI 캡처 스크린샷 및 테스트 검증 보고서
-├── tests/ & tests_web/         # 🧪 227개 엔진 및 웹 API 단위/통합 테스트
+├── tests/ & tests_web/         # 🧪 260개 엔진 및 웹 API 단위/통합 테스트
 ├── launcher.py                 # 🚀 통합 Python 구동기 (의존성·포트 검사)
 ├── START.bat                   # 🪟 Windows 1-클릭 실행 배치 스크립트
 ├── start.sh                    # 🐧 macOS/Linux 실행 셸 스크립트

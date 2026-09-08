@@ -22,7 +22,8 @@ requests={
  'forecast':{'mode':'forecast'},
  'what_if':{'mode':'what_if','scenario':{'name':'외식 20%, 쇼핑 10% 감축','expense_reductions':{'외식':.2,'쇼핑':.1}}},
  'goal':{'mode':'goal','goal':{'target_krw':3000000,'reserve_krw':200000,'success_probability':.8}},
- 'risk':{'mode':'risk','stress_scenarios':[{'name':'수입 20% 감소','income_multiplier':.8},{'name':'소비 10% 상승','expense_multiplier':1.1},{'name':'투자 평가액 20% 하락','asset_shock_fraction':-.2}]},
+ 'risk':{'mode':'risk','stress_scenarios':[{'name':'수입 20% 감소','income_multiplier':.8},{'name':'소비 10% 상승','expense_multiplier':1.1},
+                                          {'name':'고정지출 10% 인상','fixed_multiplier':1.1},{'name':'투자 평가액 20% 하락','asset_shock_fraction':-.2}]},
  'optimize':{'mode':'optimize','goal':{'target_krw':3000000,'reserve_krw':200000,'success_probability':.8},
              'optimization':{'envelopes':['외식','취미·여가','쇼핑'],'reduction_grid':[0,.1,.2],'max_shortfall_probability':.1}}
 }

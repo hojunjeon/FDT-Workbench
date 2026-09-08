@@ -13,6 +13,10 @@
       "expense_multiplier": 1.1
     },
     {
+      "name": "고정지출 10% 인상",
+      "fixed_multiplier": 1.1
+    },
+    {
       "name": "투자 평가액 20% 하락",
       "asset_shock_fraction": -0.2
     }

@@ -118,7 +118,8 @@ def test_budget_observation_and_horizon_partial(row,snapshot):
 
 def test_fixed_spending_never_reduced_by_optimizer(row,snapshot):
     from fdt.ingest import normalize
-    row['is_fixed']='TRUE';snapshot['accounts'][0]['balance_krw']=100000
+    # 라벨(is_fixed)은 더 이상 보호 근거가 아니다. 고정지출 세부분류(월세)만 보호된다.
+    row.update(category='주거·통신',subcategory='월세');snapshot['accounts'][0]['balance_krw']=100000
     t=Twin([normalize(row)],'2026-09-06',snapshot)
     r=Engine(t).run({'mode':'optimize','paths':20,'horizon_days':3})
     assert all(r['expected_saving_krw']==0 for r in r['datasets']['candidates'])

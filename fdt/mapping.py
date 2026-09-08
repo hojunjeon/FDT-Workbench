@@ -6,8 +6,17 @@ for budget/simulation controls.  Exact subcategory mappings win; the raw categor
 is used only as a safe fallback so an unknown subcategory is not silently collapsed
 into ``기타``.
 """
-MAPPING_VERSION = 'keyfin-csv-map/1.1'
+MAPPING_VERSION = 'keyfin-csv-map/2.0'
 ENVELOPES = ('외식', '교통비', '의료·건강', '취미·여가', '쇼핑', '편의점·마트·잡화', '기타')
+FIXED_GROUPS = ('주거', '공과금', '통신', '보험·사회보험', '세금', '구독·멤버십')
+FIXED_LOOKUP = {
+    '월세': '주거', '관리비': '주거',
+    '전기요금': '공과금', '가스요금': '공과금', '수도요금': '공과금',
+    '통신': '통신', '인터넷': '통신',
+    '실손보험': '보험·사회보험', '사회보험': '보험·사회보험',
+    '자동차세': '세금',
+    '구독': '구독·멤버십', '코워킹': '구독·멤버십',
+}
 GROUPS = {
     '외식': {'음식점': ['점심','저녁/외식','가족 외식','고객 미팅','빵·간식','간식','반찬','모임'],
            '카페':['카페'], '배달':['배달'], '주점':['주점']},
@@ -23,6 +32,10 @@ GROUPS = {
                      '가족 용돈','관리비','사회보험','연금','자동차세','코워킹','종교','기부','실손보험','세차']}
 }
 LOOKUP = {raw:(env,sub) for env, groups in GROUPS.items() for sub, raws in groups.items() for raw in raws}
+
+
+def fixed_group(subcategory: str) -> str | None:
+    return FIXED_LOOKUP.get(subcategory)
 
 # Fallback is intentionally envelope-only.  We retain the raw subcategory instead
 # of inventing one of the 22 KeyFin subcategories when the exact mapping is unknown.

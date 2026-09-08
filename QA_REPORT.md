@@ -72,6 +72,20 @@ CSV 중복, 혼합 사용자, 잘못된 헤더, 비UTF-8, 빈 파일, 파일 수
 
 모바일에서 긴 JSON 때문에 카드가 화면 폭을 넘는 문제를 수정했습니다. 선택적 목표 예비자금의 스냅샷 상속, % 입력의 소수 변환, 원문 JSON에서 폼으로 이동하기 전 검증, 실패/취소 후 이전 결과 표시, 새로고침 후 실행 작업 재발견을 점검하고 보완했습니다. 최종 테스트 및 스크린샷은 이 수정 이후의 결과입니다.
 
+## 6-1. 고정지출 분리와 입력 계약 (2026-09-08 추가)
+
+매핑 `keyfin-csv-map/2.0`, 모델 `calendar-block-bootstrap/2.0`. 검증 환경은 Windows 11, Python 3.13, `PYTHONUTF8=1`.
+
+| 구분 | 결과 | 근거 |
+|---|---|---|
+| Python 자동 테스트 | **260 passed, 4 skipped**(Windows 콘솔 신호 테스트) | `tests/`, `tests_web/` 전체 |
+| 새 계약 테스트 | 33개 추가: 입력 열 계약·종류 판정(`test_ingest.py`), 고정지출 흐름·규칙·수동 일정 교체·PENDING(`test_fixed_model.py`), 재분류 이벤트(`test_fixed_store.py`), 배율·교체·카드 청구·불변식(`test_fixed_simulation.py`), 지표·데이터셋·경고·partial(`test_fixed_modes.py`), 웹 config·스키마(`tests_web/test_api.py`) | 각 파일 |
+| 데모 회귀 | 4개 CSV의 종류 분포가 `expense`+`fixed_expense` 분할 외 불변(322/179/246/166건). 라벨 열 4개는 무시되고 경고 1회 | `test_ingest.py::test_actual_inputs`, `test_fixed_modes.py` |
+| 가짜 규칙 방지 | 자주 방문한 가맹점(consumer_001 M2-10 등)이 주간 규칙으로 승격되지 않음 | `test_fixed_model.py::test_no_subset_rules_for_frequent_merchants` |
+| 데모 스냅샷 | 봉투 예산 재생성. consumer_001 `기타` 1,090,000 → 107,000원(고정지출 분리 반영). risk 예제에 고정지출 10% 인상 충격 추가 | `examples/` |
+
+남은 확인: 브라우저 UI 스모크(`scripts/ui_smoke.py`)는 이번 변경 후 재실행하지 않았다. 새 폼 필드(고정지출 배율, 규칙 금액 교체, 현금 이벤트 그룹)는 JS 구문 검사와 API 테스트로만 확인했다.
+
 ## 7. 재현 및 남은 범위
 
 ```bash
