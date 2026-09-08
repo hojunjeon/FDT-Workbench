@@ -1,0 +1,87 @@
+[
+  {
+    "event_id": "fixture-transaction-001",
+    "user_id": "USR-DEMO-002",
+    "type": "transaction",
+    "transaction": {
+      "persona_id": "P-DEMO-002",
+      "persona_name": "이서준",
+      "age": "31",
+      "occupation": "IT 서비스기업 마케팅 사무직",
+      "residence": "서울 관악구 봉천동",
+      "workplace": "서울 강남구 역삼동",
+      "income_band": "월 300~350만원",
+      "user_id": "USR-DEMO-002",
+      "transaction_id": "FIXTURE-LIVE-TX-001",
+      "source": "LIVE",
+      "direction": "EXPENSE",
+      "transaction_type": "CARD",
+      "payment_method": "CARD",
+      "transaction_date": "2026-09-04",
+      "day_of_week": "목",
+      "transaction_time": "12:10",
+      "category": "식비",
+      "subcategory": "저녁/외식",
+      "merchant": "봉천 칼국수",
+      "merchant_id": "M2-16",
+      "merchant_area": "관악구 봉천동",
+      "amount_krw": "9000",
+      "account_id": "",
+      "card_id": "CARD-DEMO-002",
+      "is_fixed": "FALSE",
+      "is_recurring": "FALSE",
+      "spend_pattern": "ROUTINE",
+      "classify_source": "RULE",
+      "confirm_status": "CONFIRMED",
+      "exclude_tag": "NONE",
+      "status": "NORMAL",
+      "memo": "퇴근 후 저녁"
+    }
+  },
+  {
+    "event_id": "fixture-snapshot-001",
+    "user_id": "USR-DEMO-002",
+    "type": "snapshot",
+    "snapshot": {
+      "as_of": "2026-09-04",
+      "source": "LIVE",
+      "accounts": [
+        {
+          "account_id": "ACC-DEMO-002",
+          "balance_krw": 3000000
+        }
+      ],
+      "cards": [
+        {
+          "card_id": "CARD-DEMO-002",
+          "kind": "CREDIT",
+          "settlement_account_id": "ACC-DEMO-002",
+          "opening_payable_krw": 9000,
+          "payment_delay_days": 2
+        }
+      ],
+      "known_bills": [
+        {
+          "card_id": "CARD-DEMO-002",
+          "amount_krw": 9000,
+          "due_date": "2026-09-09",
+          "bill_id": "FIXTURE-BILL-001"
+        }
+      ],
+      "reserve_krw": 200000,
+      "coverage": {
+        "all_assets_reported": false,
+        "all_liabilities_reported": false
+      },
+      "budgets": {
+        "교통비": 140000,
+        "기타": 1090000,
+        "쇼핑": 163000,
+        "외식": 471000,
+        "의료·건강": 76000,
+        "취미·여가": 38000,
+        "편의점·마트·잡화": 407000
+      }
+    }
+  }
+]

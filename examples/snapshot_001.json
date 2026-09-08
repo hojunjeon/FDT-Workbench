@@ -1,0 +1,34 @@
+{
+  "as_of": "2026-09-03",
+  "source": "USER_ASSUMPTION",
+  "accounts": [
+    {
+      "account_id": "ACC-DEMO-002",
+      "balance_krw": 3000000
+    }
+  ],
+  "cards": [
+    {
+      "card_id": "CARD-DEMO-002",
+      "kind": "CREDIT",
+      "settlement_account_id": "ACC-DEMO-002",
+      "opening_payable_krw": 0,
+      "payment_delay_days": 2
+    }
+  ],
+  "known_bills": [],
+  "reserve_krw": 200000,
+  "coverage": {
+    "all_assets_reported": false,
+    "all_liabilities_reported": false
+  },
+  "budgets": {
+    "교통비": 140000,
+    "기타": 1090000,
+    "쇼핑": 163000,
+    "외식": 471000,
+    "의료·건강": 76000,
+    "취미·여가": 38000,
+    "편의점·마트·잡화": 407000
+  }
+}

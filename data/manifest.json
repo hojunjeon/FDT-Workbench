@@ -1,0 +1,42 @@
+[
+  {
+    "original_filename": "소비001_이서준-31-IT마케팅사무직-1인가구-봉천동월세-대중교통.csv",
+    "packaged_path": "data/demo/consumer_001.csv",
+    "sha256": "755839cc6ef42c35fc38a9387f45efc4e28d7caf98c1b2ebf7832f8448f602a9",
+    "rows": 337,
+    "user_id": "USR-DEMO-002",
+    "persona_id": "P-DEMO-002",
+    "start": "2026-06-06",
+    "end": "2026-09-03"
+  },
+  {
+    "original_filename": "소비002_김하늘-24-대학생-카페 알바-마포구자취.csv",
+    "packaged_path": "data/demo/consumer_002.csv",
+    "sha256": "4f6163b74f2787100fc7c8345006336a013c3b30549ed9d7f9c7cea6ad34d88e",
+    "rows": 193,
+    "user_id": "USR-DEMO-003",
+    "persona_id": "P-DEMO-003",
+    "start": "2026-06-08",
+    "end": "2026-09-03"
+  },
+  {
+    "original_filename": "소비003_박정민-42-프리랜서개발자-기혼자녀1-분당-차량.csv",
+    "packaged_path": "data/demo/consumer_003.csv",
+    "sha256": "c170d43b6108fd9020f83d36c49442679c84ff22ac0abe64c4e5d7a97ed80946",
+    "rows": 262,
+    "user_id": "USR-DEMO-004",
+    "persona_id": "P-DEMO-004",
+    "start": "2026-06-06",
+    "end": "2026-09-03"
+  },
+  {
+    "original_filename": "소비004_정미숙-61-은퇴교사(공무원연금)-대구범어동.csv",
+    "packaged_path": "data/demo/consumer_004.csv",
+    "sha256": "f9a8d58ef342a755de73d6088d49cdb866b253bec43f1f6aba4d25723e06c7ac",
+    "rows": 188,
+    "user_id": "USR-DEMO-005",
+    "persona_id": "P-DEMO-005",
+    "start": "2026-06-06",
+    "end": "2026-09-02"
+  }
+]

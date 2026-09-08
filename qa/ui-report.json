@@ -1,0 +1,539 @@
+{
+  "transport": "dom-injection + real-http-bridge",
+  "limitations": [
+    "Native browser HTTP, CSP enforcement, OS clipboard and actual file-download prompts are not verified by bridge mode."
+  ],
+  "checks": [
+    {
+      "name": "six-page-navigation-mounted",
+      "status": "passed"
+    },
+    {
+      "name": "korean-filename-csv-upload-profile",
+      "status": "passed"
+    },
+    {
+      "name": "manual-snapshot-to-exact-json",
+      "status": "passed"
+    },
+    {
+      "name": "csv-and-manual-state-build-real-engine",
+      "status": "passed"
+    },
+    {
+      "name": "forecast-editable-form-real-output-and-five-tabs",
+      "status": "passed"
+    },
+    {
+      "name": "what_if-editable-form-real-output-and-five-tabs",
+      "status": "passed"
+    },
+    {
+      "name": "goal-editable-form-real-output-and-five-tabs",
+      "status": "passed"
+    },
+    {
+      "name": "risk-editable-form-real-output-and-five-tabs",
+      "status": "passed"
+    },
+    {
+      "name": "optimize-editable-form-real-output-and-five-tabs",
+      "status": "passed"
+    },
+    {
+      "name": "stale-result-explicit-after-input-change",
+      "status": "passed"
+    },
+    {
+      "name": "malformed-json-user-visible-error",
+      "status": "passed"
+    },
+    {
+      "name": "server-schema-error-visible",
+      "status": "passed"
+    },
+    {
+      "name": "raw-json-edit-runs-numeric-engine",
+      "status": "passed"
+    },
+    {
+      "name": "request-json-file-import",
+      "status": "passed"
+    },
+    {
+      "name": "numeric-job-cancel-from-ui",
+      "status": "passed"
+    },
+    {
+      "name": "history-only-insufficient-data-not-zero",
+      "status": "passed"
+    },
+    {
+      "name": "all-six-pages-mobile-no-horizontal-overflow",
+      "status": "passed"
+    },
+    {
+      "name": "zero-uncaught-javascript-errors",
+      "status": "passed"
+    }
+  ],
+  "passed": 18,
+  "javascript_errors": [],
+  "http_calls": [
+    {
+      "method": "GET",
+      "path": "/api/config",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins/5ce53d9f5014417b9eb8335f290cd429",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/activity",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/uploads",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/514024cb114e4132a5ea2f312abc9ae8/result",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7cbb152052f541b29919c2e02b55aaed/result",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/5c7a1946bac4438b9833f0ae5569125f/result",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/2cc2615aa5ca4b54bf393c6700352f6d/result",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/67f58671e6dd4c3a8a9887f6d71f8ea3/result",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/f21c3c5033314c0590f592ce5ecea8f1/result",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 422
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/7d11c19b8b7e41f48ae27c3070f4dde0/result",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/ea1dea5c56db454fa2b9d147eab006eb",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/jobs/ea1dea5c56db454fa2b9d147eab006eb/cancel",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/ea1dea5c56db454fa2b9d147eab006eb",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/1bf2883e2c4f4bdda7d750b068825f44/result",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins/284c88279ffa471ba2550ec55e932528",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/twins/284c88279ffa471ba2550ec55e932528/runs",
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/b943b21122c945469e90b5d11ad99dd1/result",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/twins/95bbd76b8a8f416aa3b4545e47c30ac3",
+      "status": 200
+    }
+  ]
+}

@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "source": {
+      "enum": [
+        "USER_ASSUMPTION",
+        "LIVE"
+      ]
+    },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "balance_krw": {
+            "type": "integer",
+            "minimum": -1000000000000,
+            "maximum": 1000000000000
+          }
+        },
+        "required": [
+          "account_id",
+          "balance_krw"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 30
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "card_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": [
+              "DEBIT",
+              "CREDIT"
+            ]
+          },
+          "settlement_account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "opening_payable_krw": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "payment_delay_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 31
+          }
+        },
+        "required": [
+          "card_id",
+          "kind",
+          "settlement_account_id"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "CREDIT"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "opening_payable_krw",
+                "payment_delay_days"
+              ]
+            }
+          }
+        ]
+      },
+      "maxItems": 30
+    },
+    "known_bills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bill_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "card_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount_krw": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          }
+        },
+        "required": [
+          "bill_id",
+          "card_id",
+          "due_date",
+          "amount_krw"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 100
+    },
+    "schedules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": [
+              "expense",
+              "income",
+              "reimbursement",
+              "savings_out",
+              "cash_withdrawal",
+              "debt_service",
+              "internal_transfer"
+            ]
+          },
+          "amount_krw": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "envelope": {
+            "enum": [
+              "외식",
+              "교통비",
+              "의료·건강",
+              "취미·여가",
+              "쇼핑",
+              "편의점·마트·잡화",
+              "기타"
+            ]
+          },
+          "account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "card_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "to_account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "frequency": {
+            "enum": [
+              "MONTHLY",
+              "INTERVAL",
+              "ONCE"
+            ]
+          },
+          "next_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "day_of_month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 31
+          },
+          "interval_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 366
+          },
+          "replaces_rule_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "rule_id",
+          "kind",
+          "amount_krw",
+          "frequency",
+          "next_date"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 100
+    },
+    "reserve_krw": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "외식": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "교통비": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "의료·건강": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "취미·여가": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "쇼핑": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "편의점·마트·잡화": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "기타": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        }
+      },
+      "additionalProperties": false
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": [
+              "investment",
+              "property",
+              "cash_wallet",
+              "savings",
+              "other"
+            ]
+          },
+          "value_krw": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          }
+        },
+        "required": [
+          "asset_id",
+          "kind",
+          "value_krw"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 100
+    },
+    "liabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "liability_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "principal_krw": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          }
+        },
+        "required": [
+          "liability_id",
+          "principal_krw"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 100
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "all_assets_reported": {
+          "type": "boolean"
+        },
+        "all_liabilities_reported": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "as_of",
+    "source",
+    "accounts"
+  ],
+  "additionalProperties": false
+}

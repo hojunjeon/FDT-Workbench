@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "mode": {
+      "enum": [
+        "forecast",
+        "what_if",
+        "goal",
+        "risk",
+        "optimize"
+      ]
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "partial",
+        "insufficient_data"
+      ]
+    },
+    "twin_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "horizon_days": {
+      "type": "integer"
+    },
+    "model": {
+      "type": "object"
+    },
+    "input_digest": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "maxItems": 200
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 200
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "enum": [
+              "KRW",
+              "probability",
+              "count",
+              "ratio",
+              "days"
+            ]
+          },
+          "basis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "method": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "value",
+          "unit",
+          "basis",
+          "method",
+          "evidence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "datasets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "visualizations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": [
+              "band_line",
+              "line",
+              "bar",
+              "scatter",
+              "table"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "dataset": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "x": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "y": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 10
+          },
+          "lower": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "upper": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "null_policy": {
+            "const": "gap"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "dataset",
+          "x",
+          "y",
+          "unit",
+          "null_policy",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 30
+    },
+    "decision": {
+      "type": "object"
+    },
+    "required_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "schema_version",
+    "mode",
+    "status",
+    "twin_id",
+    "revision",
+    "as_of",
+    "horizon_days",
+    "model",
+    "input_digest",
+    "assumptions",
+    "warnings",
+    "limitations",
+    "metrics",
+    "datasets",
+    "visualizations"
+  ],
+  "additionalProperties": false
+}

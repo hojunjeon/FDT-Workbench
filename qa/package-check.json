@@ -1,0 +1,71 @@
+{
+  "platform": "linux",
+  "python": "3.13.5",
+  "extraction_path": "/mnt/data/release_check/한글 경로/KeyFin FDT Workbench",
+  "first_dependency_install_tested": false,
+  "windows_console_tested": false,
+  "checks": [
+    {
+      "name": "archive-extraction-byte-equality",
+      "status": "passed"
+    },
+    {
+      "name": "launcher-start-from-korean-space-path",
+      "status": "passed"
+    },
+    {
+      "name": "real-http-static-files-and-config",
+      "status": "passed"
+    },
+    {
+      "name": "multipart-upload-korean-filename",
+      "status": "passed",
+      "rows": 337
+    },
+    {
+      "name": "numeric-spawn-build-committed",
+      "status": "passed"
+    },
+    {
+      "name": "release-forecast-real-result",
+      "status": "passed",
+      "engine_status": "ok"
+    },
+    {
+      "name": "release-what_if-real-result",
+      "status": "passed",
+      "engine_status": "ok"
+    },
+    {
+      "name": "release-goal-real-result",
+      "status": "passed",
+      "engine_status": "ok"
+    },
+    {
+      "name": "release-risk-real-result",
+      "status": "passed",
+      "engine_status": "ok"
+    },
+    {
+      "name": "release-optimize-real-result",
+      "status": "passed",
+      "engine_status": "ok"
+    },
+    {
+      "name": "sigint-server-workers-and-port-clean",
+      "status": "passed",
+      "child_pids_checked": [
+        4310
+      ]
+    },
+    {
+      "name": "same-port-restart-and-twin-persistence",
+      "status": "passed"
+    },
+    {
+      "name": "restart-shutdown-clean",
+      "status": "passed"
+    }
+  ],
+  "passed": 13
+}

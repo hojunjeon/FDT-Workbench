@@ -1,0 +1,9 @@
+# Tested development packages; install after requirements.lock.
+pytest==9.0.2
+pytest-cov==7.0.0
+coverage==7.13.3
+iniconfig==2.3.0
+packaging==25.0
+pluggy==1.6.0
+pygments==2.20.0
+setuptools==82.0.1

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123e38">
+  <meta name="description" content="로컬 CSV로 금융 디지털 트윈을 만들고 다섯 가지 시뮬레이션을 실행하는 테스트 워크벤치">
+  <title>KeyFin · FDT Workbench</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 이동</a>
+<aside class="sidebar" aria-label="주 메뉴">
+  <a class="brand" href="#/build"><span class="brand-icon">k<span>·</span></span><span>KeyFin<small>FDT WORKBENCH</small></span></a>
+  <div class="workspace-label"><span class="dot"></span> PERSONAL WORKSPACE</div>
+  <nav id="nav"></nav>
+  <div class="sidebar-bottom"><div class="offline-badge"><span class="dot"></span> 로컬 실행 · 금융망 호출 없음</div><p>금액은 엔진이 계산합니다.<br>가정과 결과를 분리해서 확인하세요.</p><div class="version">ENGINE 0.1 / WORKBENCH 0.2</div></div>
+</aside>
+<div class="shell">
+  <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong id="crumb">Twin 생성</strong></div><div class="top-actions"><span id="server-status" class="server-status"><span class="dot"></span> 연결 중</span><label class="active-label" for="active-twin">활성 Twin</label><select id="active-twin" aria-label="활성 Twin 선택"><option value="">Twin을 생성하세요</option></select></div></header>
+  <main id="main" tabindex="-1"><div class="startup"><div class="spinner"></div><h1>워크벤치를 준비하고 있습니다.</h1><p>로컬 엔진 연결을 확인합니다.</p></div></main>
+  <footer class="page-footer"><span>Financial Digital Twin · 숫자로 확인하는 금융 시나리오</span><span>합성 데이터 기반 모델 · 실세계 확률 미검증</span></footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

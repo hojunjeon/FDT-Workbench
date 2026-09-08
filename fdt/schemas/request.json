@@ -1,0 +1,456 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "enum": [
+        "forecast",
+        "what_if",
+        "goal",
+        "risk",
+        "optimize"
+      ]
+    },
+    "horizon_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "paths": {
+      "type": "integer",
+      "minimum": 20,
+      "maximum": 2000
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "scenario": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "expense_reductions": {
+          "type": "object",
+          "properties": {
+            "외식": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "교통비": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "의료·건강": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "취미·여가": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "쇼핑": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "편의점·마트·잡화": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "기타": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "income_multiplier": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "expense_multiplier": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "cancel_rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "maxItems": 100
+        },
+        "cash_events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "account_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "amount_krw": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "direction": {
+                "enum": [
+                  "INCOME",
+                  "EXPENSE"
+                ]
+              }
+            },
+            "required": [
+              "date",
+              "account_id",
+              "amount_krw",
+              "direction"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "asset_shock_fraction": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 5
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "goal": {
+      "type": "object",
+      "properties": {
+        "target_krw": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "reserve_krw": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "success_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "target_krw"
+      ],
+      "additionalProperties": false
+    },
+    "optimization": {
+      "type": "object",
+      "properties": {
+        "envelopes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "외식",
+              "교통비",
+              "의료·건강",
+              "취미·여가",
+              "쇼핑",
+              "편의점·마트·잡화",
+              "기타"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "maxItems": 4
+        },
+        "reduction_grid": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "maxItems": 6
+        },
+        "max_shortfall_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_remaining_monthly_krw": {
+          "type": "object",
+          "properties": {
+            "외식": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "교통비": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "의료·건강": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "취미·여가": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "쇼핑": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "편의점·마트·잡화": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "기타": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "stress_scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "expense_reductions": {
+            "type": "object",
+            "properties": {
+              "외식": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "교통비": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "의료·건강": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "취미·여가": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "쇼핑": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "편의점·마트·잡화": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "기타": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "income_multiplier": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "expense_multiplier": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "cancel_rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 100
+          },
+          "cash_events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "account_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "amount_krw": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "direction": {
+                  "enum": [
+                    "INCOME",
+                    "EXPENSE"
+                  ]
+                }
+              },
+              "required": [
+                "date",
+                "account_id",
+                "amount_krw",
+                "direction"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "asset_shock_fraction": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 5
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "maxItems": 5
+    }
+  },
+  "required": [
+    "mode"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "goal"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "goal"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "what_if"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "scenario"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "not": {
+              "enum": [
+                "goal",
+                "optimize"
+              ]
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "goal"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "not": {
+              "const": "optimize"
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "optimization"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "not": {
+              "const": "risk"
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "stress_scenarios"
+          ]
+        }
+      }
+    }
+  ]
+}

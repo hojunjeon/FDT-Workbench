@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "type": {
+      "enum": [
+        "transaction",
+        "cancel_transaction",
+        "snapshot"
+      ]
+    },
+    "transaction": {
+      "type": "object"
+    },
+    "transaction_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "snapshot": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "type"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "transaction"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "transaction"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "transaction_id"
+              ]
+            },
+            {
+              "required": [
+                "snapshot"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "cancel_transaction"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "transaction_id"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "transaction"
+              ]
+            },
+            {
+              "required": [
+                "snapshot"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "snapshot"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "snapshot"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "transaction"
+              ]
+            },
+            {
+              "required": [
+                "transaction_id"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

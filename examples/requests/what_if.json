@@ -1,0 +1,13 @@
+{
+  "horizon_days": 90,
+  "paths": 400,
+  "seed": 42,
+  "mode": "what_if",
+  "scenario": {
+    "name": "외식 20%, 쇼핑 10% 감축",
+    "expense_reductions": {
+      "외식": 0.2,
+      "쇼핑": 0.1
+    }
+  }
+}

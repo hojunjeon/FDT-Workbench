@@ -1,0 +1,11 @@
+{
+  "horizon_days": 90,
+  "paths": 400,
+  "seed": 42,
+  "mode": "goal",
+  "goal": {
+    "target_krw": 3000000,
+    "reserve_krw": 200000,
+    "success_probability": 0.8
+  }
+}

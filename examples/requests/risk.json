@@ -1,0 +1,20 @@
+{
+  "horizon_days": 90,
+  "paths": 400,
+  "seed": 42,
+  "mode": "risk",
+  "stress_scenarios": [
+    {
+      "name": "수입 20% 감소",
+      "income_multiplier": 0.8
+    },
+    {
+      "name": "소비 10% 상승",
+      "expense_multiplier": 1.1
+    },
+    {
+      "name": "투자 평가액 20% 하락",
+      "asset_shock_fraction": -0.2
+    }
+  ]
+}

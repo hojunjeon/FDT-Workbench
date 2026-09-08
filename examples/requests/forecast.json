@@ -1,0 +1,6 @@
+{
+  "horizon_days": 90,
+  "paths": 400,
+  "seed": 42,
+  "mode": "forecast"
+}

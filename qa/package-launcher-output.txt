@@ -1,0 +1,38 @@
+
+============================================================
+  KEYFIN / FDT WORKBENCH 0.2
+  Open: http://127.0.0.1:36801
+  Data: /mnt/data/release_check/한글 경로/테스트 데이터 폴더
+  Press Ctrl+C in THIS window to stop server + numeric workers.
+  Closing the browser tab does NOT stop the engine.
+============================================================
+
+INFO:     Started server process [4299]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4299]
+
+[STOP] Ctrl+C received.
+[STOPPED] Server and numeric workers are stopped. Saved Twins are retained.
+
+============================================================
+  KEYFIN / FDT WORKBENCH 0.2
+  Open: http://127.0.0.1:36801
+  Data: /mnt/data/release_check/한글 경로/테스트 데이터 폴더
+  Press Ctrl+C in THIS window to stop server + numeric workers.
+  Closing the browser tab does NOT stop the engine.
+============================================================
+
+INFO:     Started server process [4380]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4380]
+
+[STOP] Ctrl+C received.
+[STOPPED] Server and numeric workers are stopped. Saved Twins are retained.

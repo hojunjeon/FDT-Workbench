@@ -1,0 +1,24 @@
+{
+  "horizon_days": 90,
+  "paths": 400,
+  "seed": 42,
+  "mode": "optimize",
+  "goal": {
+    "target_krw": 3000000,
+    "reserve_krw": 200000,
+    "success_probability": 0.8
+  },
+  "optimization": {
+    "envelopes": [
+      "외식",
+      "취미·여가",
+      "쇼핑"
+    ],
+    "reduction_grid": [
+      0,
+      0.1,
+      0.2
+    ],
+    "max_shortfall_probability": 0.1
+  }
+}

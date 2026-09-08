@@ -1,0 +1,47 @@
+{
+  "as_of": "2026-09-03",
+  "source": "USER_ASSUMPTION",
+  "accounts": [
+    {
+      "account_id": "ACC-DEMO-004",
+      "balance_krw": 5000000
+    }
+  ],
+  "cards": [
+    {
+      "card_id": "CARD-DEMO-004",
+      "kind": "CREDIT",
+      "settlement_account_id": "ACC-DEMO-004",
+      "opening_payable_krw": 0,
+      "payment_delay_days": 2
+    }
+  ],
+  "known_bills": [],
+  "reserve_krw": 200000,
+  "coverage": {
+    "all_assets_reported": false,
+    "all_liabilities_reported": false
+  },
+  "assets": [
+    {
+      "asset_id": "DEMO-INVESTMENT",
+      "kind": "investment",
+      "value_krw": 12000000
+    }
+  ],
+  "liabilities": [
+    {
+      "liability_id": "DEMO-LOAN",
+      "principal_krw": 100000000
+    }
+  ],
+  "budgets": {
+    "교통비": 219000,
+    "기타": 1962000,
+    "쇼핑": 55000,
+    "외식": 858000,
+    "의료·건강": 62000,
+    "취미·여가": 252000,
+    "편의점·마트·잡화": 1048000
+  }
+}
