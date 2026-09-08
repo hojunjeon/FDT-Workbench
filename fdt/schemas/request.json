@@ -165,7 +165,25 @@
               "amount_krw",
               "direction"
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "direction": {
+                      "const": "INCOME"
+                    }
+                  }
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "fixed_group"
+                    ]
+                  }
+                }
+              }
+            ]
           },
           "maxItems": 100
         },
@@ -424,7 +442,25 @@
                 "amount_krw",
                 "direction"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "direction": {
+                        "const": "INCOME"
+                      }
+                    }
+                  },
+                  "then": {
+                    "not": {
+                      "required": [
+                        "fixed_group"
+                      ]
+                    }
+                  }
+                }
+              ]
             },
             "maxItems": 100
           },

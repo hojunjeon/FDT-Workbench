@@ -237,7 +237,46 @@
           "frequency",
           "next_date"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "fixed_expense"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "fixed_group"
+              ],
+              "not": {
+                "required": [
+                  "envelope"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "not": {
+                    "const": "fixed_expense"
+                  }
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "fixed_group"
+                ]
+              }
+            }
+          }
+        ]
       },
       "maxItems": 100
     },

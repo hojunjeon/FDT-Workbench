@@ -26,6 +26,12 @@ schedule = obj({
     'interval_days':{'type':'integer','minimum':1,'maximum':366},
     'replaces_rule_id':STR,'replaces_transaction_ids':{'type':'array','items':STR,'maxItems':100,'minItems':1,'uniqueItems':True}
 },['rule_id','kind','amount_krw','frequency','next_date'])
+schedule['allOf']=[
+    {'if':{'properties':{'kind':{'const':'fixed_expense'}}},
+     'then':{'required':['fixed_group'],'not':{'required':['envelope']}}},
+    {'if':{'properties':{'kind':{'not':{'const':'fixed_expense'}}}},
+     'then':{'not':{'required':['fixed_group']}}}
+]
 account=obj({'account_id':STR,'balance_krw':SIGNED},['account_id','balance_krw'])
 card=obj({'card_id':STR,'kind':enum('DEBIT','CREDIT'),'settlement_account_id':STR,
           'opening_payable_krw':MONEY,'payment_delay_days':{'type':'integer','minimum':0,'maximum':31}},
@@ -39,6 +45,10 @@ write('snapshot',obj({
     'liabilities':arr(obj({'liability_id':STR,'principal_krw':MONEY},['liability_id','principal_krw']),100),
     'coverage':obj({'all_assets_reported':{'type':'boolean'},'all_liabilities_reported':{'type':'boolean'}})
 },['as_of','source','accounts']))
+cash_event=obj({'date':DATE,'account_id':STR,'amount_krw':MONEY,'direction':enum('INCOME','EXPENSE'),
+                'fixed_group':enum(*FIXED)},['date','account_id','amount_krw','direction'])
+cash_event['allOf']=[{'if':{'properties':{'direction':{'const':'INCOME'}}},
+                      'then':{'not':{'required':['fixed_group']}}}]
 scenario=obj({
     'name':STR,'expense_reductions':envmap(PROB),
     'income_multiplier':{'type':'number','minimum':0,'maximum':5},
@@ -46,8 +56,7 @@ scenario=obj({
     'cancel_rule_ids':arr(STR,100),
     'fixed_multiplier':{'type':'number','minimum':0,'maximum':5},
     'fixed_overrides':arr(obj({'rule_id':STR,'amount_krw':MONEY},['rule_id','amount_krw']),100),
-    'cash_events':arr(obj({'date':DATE,'account_id':STR,'amount_krw':MONEY,'direction':enum('INCOME','EXPENSE'),
-                           'fixed_group':enum(*FIXED)},['date','account_id','amount_krw','direction']),100),
+    'cash_events':arr(cash_event,100),
     'asset_shock_fraction':{'type':'number','minimum':-1,'maximum':5}
 })
 goal=obj({'target_krw':MONEY,'reserve_krw':MONEY,'success_probability':PROB},['target_krw'])
